@@ -1,9 +1,16 @@
 from inspect import get_annotations
 import sqlite3
+
+from typing import Any
+
+from bookkeeper.repository.abstract_repository import AbstractRepository, T
+
+
 class SQLiteRepository(AbstractRepository[T]):
     """
     Репозиторий для хранения в sqlite.
     """
+
     def __init__(self, db_file: str, cls: type) -> None:
         self.db_file = db_file
         self.table_name = cls.__name__.lower()
@@ -18,8 +25,8 @@ class SQLiteRepository(AbstractRepository[T]):
             cur = con.cursor()
             cur.execute('PRAGMA foreign_keys = ON')
             cur.execute(
-            f'INSERT INTO {self.table_name} ({names}) VALUES ({p})',
-            values
+                f'INSERT INTO {self.table_name} ({names}) VALUES ({p})',
+                values
             )
             obj.pk = cur.lastrowid
         con.close()
@@ -30,11 +37,10 @@ class SQLiteRepository(AbstractRepository[T]):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
             cur.execute(f"SELECT * FROM {self.table_name} WHERE id=?",
-                                   (pk,)
-                                   )
+                        (pk,)
+                        )
             records = cur.fetchall()
             return records
-
 
     def delete(self, pk: int) -> None:
         with sqlite3.connect(self.db_file) as con:
@@ -55,9 +61,10 @@ class SQLiteRepository(AbstractRepository[T]):
 
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
-            cur.execute(f"UPDATE {self.table_name} SET ({names}) VALUES ({p})",
-            values
-            )
+            cur.execute(
+                    f"UPDATE {self.table_name} SET ({names}) VALUES ({p})",
+                    values
+                    )
         con.commit()
         con.close()
 
@@ -67,7 +74,8 @@ class SQLiteRepository(AbstractRepository[T]):
             with sqlite3.connect(self.db_file) as con:
                 cur = con.cursor()
                 cur.execute(f"SELECT * FROM {self.table_name}")
-                rows = cursor.fetchall()
+                records = cur.fetchall()
+                return records
 
                 # # get columns list using get_columns
                 # columns = self.get_columns(table=table, database=database)
