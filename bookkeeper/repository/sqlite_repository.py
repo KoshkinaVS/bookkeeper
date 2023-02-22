@@ -74,7 +74,9 @@ class SQLiteRepository(AbstractRepository[T]):
             with sqlite3.connect(self.db_file) as con:
                 cur = con.cursor()
                 cur.execute(f"SELECT * FROM {self.table_name}")
-                records = cur.fetchall()
+                # records = cur.fetchall()
+                records = [item[0] for item in cur.fetchall()]
+                # records = [item['id'] for item in cur.fetchall()]
                 return records
 
                 # # get columns list using get_columns
@@ -95,3 +97,16 @@ class SQLiteRepository(AbstractRepository[T]):
                 # return records
         # return [obj for obj in self._container.values()
         #         if all(getattr(obj, attr) == value for attr, value in where.items())]
+
+        names = ', '.join(where.keys())
+        p = ', '.join("?" * len(where))
+        values = list(where)
+
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.execute(
+                f"SELECT * FROM {self.table_name} WHERE ({names}) VALUES ({p})",
+                values
+                 )
+            records = cur.fetchall()
+            return records
