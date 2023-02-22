@@ -1,5 +1,5 @@
- from inspect import get_annotations
- import sqlite3
+from inspect import get_annotations
+import sqlite3
 class SQLiteRepository(AbstractRepository[T]):
     """
     Репозиторий для хранения в sqlite.
@@ -29,15 +29,19 @@ class SQLiteRepository(AbstractRepository[T]):
         # return self._container.get(pk)
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
-            sql_cmd = f"SELECT * FROM {self.table_name} WHERE " + self.get_primary_key(table=self.table_name,
-                                                                                  database=self.db_file) + "=?;"
-            fetch = cursor.execute(sql_cmd, (pk,))
+            cur.execute(f"SELECT * FROM {self.table_name} WHERE id=?",
+                                   (pk,)
+                                   )
+            records = cur.fetchall()
+            return records
 
 
     def delete(self, pk: int) -> None:
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
-            cur.execute(f"DELETE FROM {self.table_name} WHERE id=?",(pk,))
+            cur.execute(f"DELETE FROM {self.table_name} WHERE id=?",
+                        (pk,)
+                        )
         con.commit()
         con.close()
 
@@ -59,6 +63,27 @@ class SQLiteRepository(AbstractRepository[T]):
 
     def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
         if where is None:
-            return list(self._container.values())
-        return [obj for obj in self._container.values()
-                if all(getattr(obj, attr) == value for attr, value in where.items())]
+            # return list(self._container.values())
+            with sqlite3.connect(self.db_file) as con:
+                cur = con.cursor()
+                cur.execute(f"SELECT * FROM {self.table_name}")
+                rows = cursor.fetchall()
+
+                # # get columns list using get_columns
+                # columns = self.get_columns(table=table, database=database)
+                # records = []
+                # tmp_dict = {}
+                #
+                # names = ', '.join(self.fields.keys())
+                # p = ', '.join("?" * len(self.fields))
+                # values = [getattr(obj, x) for x in self.fields]
+                #
+                # for row in rows:
+                #     for index, data in enumerate(row):
+                #         # this creates dictionary with column names and records
+                #         tmp_dict[names[index]] = data
+                #     records.append(tmp_dict)
+                #     tmp_dict = {}
+                # return records
+        # return [obj for obj in self._container.values()
+        #         if all(getattr(obj, attr) == value for attr, value in where.items())]
