@@ -28,6 +28,19 @@ class ExpenseItem:
     cat: str
 
 
+def widget_with_label(text, widget):
+    hl = QtWidgets.QHBoxLayout()
+    hl.addWidget(QtWidgets.QLabel(text))
+    hl.addWidget(widget)
+    return hl
+
+def widget_with_h(w1, w2):
+    hl = QtWidgets.QHBoxLayout()
+    hl.addWidget(w1)
+    hl.addWidget(w2)
+    return hl
+
+
 class ExpenseInput(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         # обязательно наследуемся от родительского класса!!
@@ -39,19 +52,19 @@ class ExpenseInput(QtWidgets.QWidget):
 
         # сумма траты - одна строка
         self.summa = QtWidgets.QLineEdit()
-        self.summa.setPlaceholderText('0.00')
+        self.summa.setPlaceholderText('00.00')
         self.summa.setValidator(QtGui.QDoubleValidator(0., 1_000_000_000, 2))
-        self.layout.addWidget(self.summa)
 
-        # hbox = QtWidgets.QHBoxLayout()
-        # categ = QtWidgets.QLabel("Категория: ")
-        # hbox.addWidget(categ)
+        self.layout.addLayout(widget_with_label(
+        text='Сумма', widget=self.summa))
 
+        self.cats_list = cats
 
         self.cat = QtWidgets.QComboBox()
-        self.cat.addItems(cats)
-        self.layout.addWidget(self.cat)
-        # hbox.addWidget(self.cat)
+        self.cat.addItems(self.cats_list)
+
+        self.layout.addLayout(widget_with_label(
+        text='Категория', widget=self.cat))
 
 
     def is_filled(self):
@@ -138,6 +151,8 @@ class MainWindow(QtWidgets.QWidget):
 
         self.setWindowTitle("The Bookkeeper App")
 
+        self.cats = cats
+
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
 
@@ -155,7 +170,6 @@ class MainWindow(QtWidgets.QWidget):
         self.btn_cat.clicked.connect(self.update_cat)
 
 
-
         self.btn = QtWidgets.QPushButton('Добавить')
         self.layout.addWidget(self.btn)
         self.btn.clicked.connect(self.save)
@@ -167,6 +181,9 @@ class MainWindow(QtWidgets.QWidget):
                                           'продукты')
         if ok and text:
             cats.append(text)
+            self.new_expense_widget.cat.addItem(text)
+            self.new_expense_widget.cats_list.append(text)
+
 
         # dlg = QtWidgets.QInputDialog()
         # dlg.setWindowTitle("Редактирование категории")
