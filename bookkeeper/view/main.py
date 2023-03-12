@@ -40,6 +40,42 @@ def widget_with_h(w1, w2):
     hl.addWidget(w2)
     return hl
 
+class TableView(QtWidgets.QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.layout = QtWidgets.QVBoxLayout()
+        self.setLayout(self.layout)
+
+        expenses_table = QtWidgets.QTableWidget(4, 20)
+        expenses_table.setColumnCount(4)
+        expenses_table.setRowCount(20)
+        expenses_table.setHorizontalHeaderLabels(
+            "Дата Сумма Категория Комментарий".split())
+
+        header = expenses_table.horizontalHeader()
+        header.setSectionResizeMode(
+            0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(
+            2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(
+            3, QtWidgets.QHeaderView.Stretch)
+
+        expenses_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+
+        expenses_table.verticalHeader().hide()
+
+        self.layout.addWidget(expenses_table)
+
+
+    def set_data(data: list[list[str]]):
+        for i, row in enumerate(data):
+            for j, x in enumerate(row): expenses_table.setItem(
+                    i, j, QtWidgets.QTableWidgetItem(x.capitalize())
+                        )
+
 
 class ExpenseInput(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
@@ -73,7 +109,9 @@ class ExpenseInput(QtWidgets.QWidget):
         return bool(self.summa.text() and self.cat.currentText())
 
     def get_data(self):
-        return ExpenseItem(float(self.summa.text() or 0), self.cat.currentText())
+        # return ExpenseItem(float(self.summa.text() or 0), self.cat.currentText())
+        return [[0, float(self.summa.text() or 0), self.cat.currentText(), '']]
+
 
 class ExpensesListWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
@@ -158,6 +196,10 @@ class MainWindow(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
 
+        self.table_expenses = TableView()
+        self.layout.addWidget(self.table_expenses)
+
+
         self.expenses_widget = ExpensesListWidget()
         self.layout.addWidget(self.expenses_widget)
 
@@ -193,6 +235,7 @@ class MainWindow(QtWidgets.QWidget):
         # dlg.exec()
 
     def save(self):
+        self.table_expenses.set_data(self.new_expense_widget.get_data())
         print(self.expenses_widget.get_data())
         self.expenses_widget.add_line(self.new_expense_widget)
 
