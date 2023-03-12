@@ -53,7 +53,9 @@ class ExpenseInput(QtWidgets.QWidget):
         # сумма траты - одна строка
         self.summa = QtWidgets.QLineEdit()
         self.summa.setPlaceholderText('00.00')
-        self.summa.setValidator(QtGui.QDoubleValidator(0., 1_000_000_000, 2))
+
+        validator = QtGui.QRegularExpressionValidator(r'[0-9].+')
+        self.summa.setValidator(validator)
 
         self.layout.addLayout(widget_with_label(
         text='Сумма', widget=self.summa))
