@@ -27,6 +27,8 @@ cats = '''продукты
 class ExpenseItem:
     summa: float
     cat: str
+    data: str
+    comment: str
 
 
 def widget_with_label(text, widget):
@@ -102,6 +104,9 @@ class ExpenseInput(QtWidgets.QWidget):
         self.cat = QtWidgets.QComboBox()
         self.cat.addItems(self.cats_list)
 
+        self.date = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        self.comment = ''
+
         self.layout.addLayout(widget_with_label(
         text='Категория', widget=self.cat))
 
@@ -110,8 +115,9 @@ class ExpenseInput(QtWidgets.QWidget):
         return bool(self.summa.text() and self.cat.currentText())
 
     def get_data(self):
-        # return ExpenseItem(float(self.summa.text() or 0), self.cat.currentText())
-        return [[datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), float(self.summa.text() or 0), self.cat.currentText(), '']]
+        return [self.date or datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
+                float(self.summa.text() or 0), self.cat.currentText(), self.comment]
+        # return [datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), float(self.summa.text() or 0), self.cat.currentText(), '']
 
 
 class ExpensesListWidget(QtWidgets.QWidget):
@@ -120,18 +126,20 @@ class ExpensesListWidget(QtWidgets.QWidget):
         self.layout = QtWidgets.QVBoxLayout()
         self.setLayout(self.layout)
         self.lines = []
-        # self.add_line()
-        # self.add_line()
+        self.new_expense_widget = ExpenseInput()
+        self.layout.addWidget(self.new_expense_widget)
+
 
     def add_line(self, w):
-        # w = ExpenseInput()
         self.lines.append(w)
-        self.layout.addWidget(w)
+        # self.new_expense_widget = ExpenseInput()
+        # self.layout.addWidget(w)
 
-    def changeEvent(self, event):
-        # event.accept()
-        if all(line.is_filled() for line in self.lines):
-            self.add_line()
+
+    # def changeEvent(self, event):
+    #     # event.accept()
+    #     if all(line.is_filled() for line in self.lines):
+    #         self.add_line()
 
     def get_data(self):
         return [line.get_data() for line in self.lines if line.is_filled()]
@@ -201,15 +209,14 @@ class MainWindow(QtWidgets.QWidget):
         self.table_expenses = TableView()
         self.layout.addWidget(self.table_expenses)
 
-
         self.expenses_widget = ExpensesListWidget()
         self.layout.addWidget(self.expenses_widget)
 
         # self.budget_widget = BudgetListWidget()
         # self.layout.addWidget(self.budget_widget)
 
-        self.new_expense_widget = ExpenseInput()
-        self.layout.addWidget(self.new_expense_widget)
+        # self.new_expense_widget = ExpenseInput()
+        # self.layout.addWidget(self.new_expense_widget)
 
         self.btn_cat = QtWidgets.QPushButton('Редактировать категорию')
         self.layout.addWidget(self.btn_cat)
@@ -222,24 +229,21 @@ class MainWindow(QtWidgets.QWidget):
 
     def update_cat(self):
 
-        text, ok = QtWidgets.QInputDialog().getText(self, "Редактирование категории",
+        dlg = QtWidgets.QInputDialog()
+        # dlg.resize(1000, 200)
+        text, ok = dlg.getText(self, "Редактирование категории",
                                           "Имя категории:", QtWidgets.QLineEdit.Normal,
                                           'продукты')
         if ok and text:
             cats.append(text)
-            self.new_expense_widget.cat.addItem(text)
-            self.new_expense_widget.cats_list.append(text)
+            self.expenses_widget.new_expense_widget.cat.addItem(text)
+            self.expenses_widget.new_expense_widget.cats_list.append(text)
 
-
-        # dlg = QtWidgets.QInputDialog()
-        # dlg.setWindowTitle("Редактирование категории")
-        # dlg.resize(200, 50)
-        # dlg.exec()
 
     def save(self):
-        self.table_expenses.set_data(self.new_expense_widget.get_data())
+        self.expenses_widget.lines.append(self.expenses_widget.new_expense_widget)
+        self.table_expenses.set_data(self.expenses_widget.get_data())
         print(self.expenses_widget.get_data())
-        self.expenses_widget.add_line(self.new_expense_widget)
         self.table_counter += 1
 
 
